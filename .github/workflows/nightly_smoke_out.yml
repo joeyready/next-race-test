@@ -30,3 +30,11 @@ jobs:
         with:
           name: playwright-traces
           path: test-results/
+
+      - uses: slackapi/slack-github-action@v2.0.0
+        if: always()
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            text: "${{ job.status == 'success' && '✅' || '❌' }} Nightly smoke tests: *${{ job.status }}* (<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|view run>)"
