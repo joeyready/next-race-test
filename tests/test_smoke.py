@@ -46,9 +46,44 @@ def test_featured_race_link_navigates_to_detail_page(ready_page: Page):
     expect(ready_page.get_by_role("heading", level=1).first).to_be_visible()
 
 @pytest.mark.smoke
+def test_about_link_opens_about_page(ready_page: Page):
+    ready_page.get_by_role("link", name="About").click()
+
+    expect(ready_page).to_have_url(re.compile(r"/about", re.IGNORECASE))
+    expect(ready_page.get_by_role("heading", level=1).first).to_be_visible()
+
+@pytest.mark.smoke
 def test_footer_legal_links_present(ready_page: Page):
     expect(ready_page.get_by_role("link", name="Privacy Policy")).to_be_visible()
     expect(ready_page.get_by_role("link", name="Terms of Service")).to_be_visible()
+
+@pytest.mark.smoke
+def test_privacy_policy_link_opens_policy_page(ready_page: Page):
+    ready_page.get_by_role("link", name="Privacy Policy").click()
+
+    expect(ready_page).to_have_url(re.compile(r"/privacy", re.IGNORECASE))
+    expect(ready_page.get_by_role("heading", level=1).first).to_be_visible()
+
+@pytest.mark.smoke
+def test_terms_of_service_link_opens_tos_page(ready_page: Page):
+    ready_page.get_by_role("link", name="Terms of Service").click()
+
+    expect(ready_page).to_have_url(re.compile(r"/terms-of-service", re.IGNORECASE))
+    expect(ready_page.get_by_role("heading", level=1).first).to_be_visible()
+
+@pytest.mark.smoke
+def test_affiliate_disclosure_link_opens_disclosure_page(ready_page: Page):
+    ready_page.get_by_role("link", name="Affiliate Disclosure").click()
+
+    expect(ready_page).to_have_url(re.compile(r"/affiliate-disclosure", re.IGNORECASE))
+    expect(ready_page.get_by_role("heading", level=1).first).to_be_visible()
+
+@pytest.mark.smoke
+def test_support_link_opens_support_page(ready_page: Page):
+    ready_page.get_by_role("link", name="Support").click()
+
+    expect(ready_page).to_have_url(re.compile(r"/support", re.IGNORECASE))
+    expect(ready_page.get_by_role("heading", level=1).first).to_be_visible()
 
 @pytest.mark.smoke
 def test_submit_race_page_shows_form_and_validates(ready_page: Page):
