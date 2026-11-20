@@ -1,9 +1,11 @@
-# .github/workflows/nightly-smoke.yml
-name: Nightly smoke tests
+# .github/workflows/smoke-tests.yml
+name: Smoke tests
 
 on:
+  push:
+  pull_request:
   schedule:
-    - cron: "0 13 * * *" # 13:00 UTC daily
+    - cron: "0 8 * * *" # 13:00 UTC daily
   workflow_dispatch:
 
 jobs:
@@ -31,10 +33,11 @@ jobs:
           name: playwright-traces
           path: test-results/
 
+      # Only notify Slack for scheduled/manual runs, not every push or PR
       - uses: slackapi/slack-github-action@v2.0.0
-        if: always()
+        if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           payload: |
-            text: "${{ job.status == 'success' && '✅' || '❌' }} Wake and Bake! Today's smoke test results: *${{ job.status }}* (<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|view run>)"
+            text: "${{ job.status == 'success' && '✅' || '❌' }} nextrace.live smoke tests: *${{ job.status }}* (<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|view run>)"

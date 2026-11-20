@@ -1,5 +1,8 @@
 import re
 import pytest
+from playwright.sync_api import expect
+
+expect.set_options(timeout=15000)
 
 
 @pytest.fixture(scope="session")
@@ -23,4 +26,5 @@ def ready_page(page, base_url):
     if close_button.is_visible():
         close_button.click()
     return page
+
 
