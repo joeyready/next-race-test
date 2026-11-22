@@ -8,10 +8,23 @@ SEARCH_BOX = "Search by city or zip code..."
 # On its own it can also match the featured-races carousel on the homepage.
 RESULT_LINKS = "a[href*='/races/']"
 
+# Matches "5K", "5KM", "3.1 MILES", "3.11 MILES". Card text arrives without spaces
+# between chips ("running_race5katx..."), so no \b word boundaries; the lookbehind
+# only stops "15K", "2.5K" and "13.1 MILES" from matching.
+FIVE_K = re.compile(r"(?<![\d.])(5\s?k|3\.1\d?\s*mi)", re.IGNORECASE)
+
+# Only links that carry the search parameters belong to the search results.
+SEARCH_RESULT_LINKS = "a[href*='/races/'][href*='lat=']"
 
 def search_location(page: Page, term: str):
     page.get_by_role("textbox", name=SEARCH_BOX).fill(term)
     page.get_by_role("button", name="Search location").click()
+
+    # The page shows a default list first, then swaps in the real results.
+    # Wait until a result for the searched city actually appears.
+    expect(
+        page.locator(RESULT_LINKS).filter(has_text=re.compile(term, re.IGNORECASE)).first
+    ).to_be_visible(timeout=15000)
 
 
 @pytest.mark.functional
@@ -48,15 +61,29 @@ def test_search_result_opens_race_detail_page(ready_page: Page):
 
 
 @pytest.mark.functional
-def test_5k_filter_returns_results(ready_page: Page):
+def test_5k_filter_only_shows_5k_races(ready_page: Page):
     search_location(ready_page, "Austin")
     ready_page.get_by_role("button", name="5k").click()
 
-    results = ready_page.locator(RESULT_LINKS)
+    expect(ready_page).to_have_url(re.compile(r"distance=5k"))
 
-    # Verify the filter returns visible results.
-    expect(results.first).to_be_visible()
+    results = ready_page.locator(SEARCH_RESULT_LINKS)
 
+    # Wait for an Austin 5K result to show up, so we know the filtered list loaded.
+    expect(
+        results.filter(has_text=re.compile("austin", re.IGNORECASE)).filter(has_text=FIVE_K).first
+    ).to_be_visible(timeout=15000)
+
+    others = results.filter(has_not_text=FIVE_K)
+    try:
+        expect(others).to_have_count(0, timeout=15000)
+    except AssertionError:
+        details = [
+            f"{others.nth(i).get_attribute('href')} | "
+            f"{others.nth(i).inner_text().replace(chr(10), ' / ')[:100]}"
+            for i in range(others.count())
+        ]
+        raise AssertionError("Non-5K results:\n" + "\n".join(details))
 
 def test_debug_results(ready_page: Page):
     search_location(ready_page, "Austin")
