@@ -27,4 +27,8 @@ def ready_page(page, base_url):
         close_button.click()
     return page
 
+@pytest.fixture
+def search_box(ready_page):
+    return ready_page.get_by_placeholder("Search by city or zip code...").locator("visible=true")
+
 

@@ -1,15 +1,15 @@
 # .github/workflows/smoke-tests.yml
-name: Smoke tests
+name: Daily tests
 
 on:
   push:
   pull_request:
   schedule:
-    - cron: "0 8 * * *" # 13:00 UTC daily
+    - cron: "0 8 * * *" # 08:00 UTC daily
   workflow_dispatch:
 
 jobs:
-  smoke:
+  tests:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -25,7 +25,12 @@ jobs:
 
       - run: playwright install --with-deps chromium
 
-      - run: pytest tests/test_smoke.py --tracing=retain-on-failure
+      - name: Smoke tests
+        run: pytest tests -m smoke --tracing=retain-on-failure --output=test-results/smoke
+
+      - name: Negative tests
+        if: always()
+        run: pytest tests -m negative --tracing=retain-on-failure --output=test-results/negative
 
       - uses: actions/upload-artifact@v4
         if: failure()
@@ -40,4 +45,4 @@ jobs:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           payload: |
-            text: "${{ job.status == 'success' && '✅' || '❌' }} nextrace.live smoke tests: *${{ job.status }}* (<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|view run>)"
+            text: "${{ job.status == 'success' && '✅' || '❌' }} nextrace.live daily tests: *${{ job.status }}* (<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|view run>)"
