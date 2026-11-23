@@ -69,12 +69,10 @@ pytest tests -v -s
   - `ready_page`: loads the homepage and dismisses the email signup popup so every test
     starts from the same state.
   - `search_box`: the visible "Search by city or zip code..." input (see design choices above).
-- `test_smoke.py`: 12 smoke tests covering:
-  - homepage title, hero heading, and "Upcoming races" stat
-  - top navigation links (Submit a Race, About)
-  - featured race click-through to a detail page
-  - About, Privacy Policy, Terms of Service, Affiliate Disclosure, and Support pages
-  - Submit a Race form rendering and empty-form validation (no data is submitted)
+- `tests/test_smoke.py` — read-only checks: homepage title, hero heading, stats bar,
+  nav links, featured race click-through, About/Support pages, footer legal pages
+  (Privacy, Terms, Affiliate Disclosure), the Submit a Race form's validation, and
+  a city search that checks the URL, heading, and result cards update.
 - `test_negative.py`: 6 negative and error-handling tests covering:
   - unknown URL returns a 404 and still renders a page
   - nonexistent race URL fails gracefully (404/410, no server error text leaked)
@@ -121,8 +119,10 @@ to remove the marker.
   nothing is ever sent.
 - Search is covered by Enter-key submission only. The icon-only search button has no stable
   locator yet (an `aria-label` would fix that).
-- The site shows a default "races near Los Angeles (just a guess...)" location, which may
-  differ for CI runners in other regions, so tests don't assert on it.
+- This is a smoke suite: fast, shallow, no-auth checks that the app is "alive." It
+  intentionally does not cover login or race submission. Those need a dedicated test
+  account and either a staging environment or a data-cleanup strategy, since they
+  write real data. Search is covered because it's read-only.
 
 ## Roadmap
 

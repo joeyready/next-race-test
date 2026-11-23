@@ -96,3 +96,22 @@ def test_submit_race_page_shows_form_and_validates(ready_page: Page):
     # Submit empty form and assert native constraint validation blocks submission
     ready_page.get_by_role("button", name=re.compile("Submit", re.IGNORECASE)).click()
     expect(ready_page.locator("form :invalid").first).to_be_visible()
+
+@pytest.mark.smoke
+def test_race_search_returns_results(ready_page: Page):
+    """
+    Searches by city and checks that the page re-centers on that city and
+    shows race results. Search is read-only, so it's safe on production.
+    """
+    search_box = ready_page.get_by_role("textbox", name="Search by city or zip code...")
+    search_box.fill("Irvine")
+    ready_page.get_by_role("button", name="Search location").click()
+
+    # Search puts the coordinates in the URL and updates the page heading.
+    expect(ready_page).to_have_url(re.compile(r"lat=.*lon=", re.IGNORECASE))
+    expect(
+        ready_page.get_by_role("heading", level=1, name=re.compile("Irvine", re.IGNORECASE))
+    ).to_be_visible()
+
+    # At least one result card links to a race detail page.
+    expect(ready_page.locator("a[href^='/races/']").first).to_be_visible()
